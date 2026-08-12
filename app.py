@@ -867,7 +867,9 @@ def support_contact():
     result=mongo_db.support_messages.insert_one(doc);return jsonify({'id':str(result.inserted_id),'status':'received'}),201
 
 @app.route('/api/health')
-def health(): return jsonify({'status':'ok','entries':TimetableEntry.query.count()})
+def health():
+    try:return jsonify({'status':'ok','database':'mongodb','entries':TimetableEntry.query.count()})
+    except Exception as exc:return jsonify({'status':'degraded','database':'mongodb-unavailable','error':'Set a reachable MONGODB_URI environment variable'}),503
 
 @app.route('/')
 def serve_index(): return send_from_directory(str(FRONTEND_DIR),'index.html')
@@ -878,12 +880,15 @@ def serve_static(path):
     return send_from_directory(str(FRONTEND_DIR), path)
 
 with app.app_context():
-    mongo.admin.command('ping')
-    mongo_db.departments.create_index([('code',ASCENDING)],unique=True)
-    mongo_db.faculty.create_index([('faculty_id',ASCENDING),('dept_id',ASCENDING)],unique=True,sparse=True)
-    mongo_db.users.create_index([('username',ASCENDING)],unique=True)
-    mongo_db.users.create_index([('email',ASCENDING)],unique=True)
-    print('-'*40+' EduSchedule MongoDB Ready -> http://127.0.0.1:5000')
+    try:
+        mongo.admin.command('ping')
+        mongo_db.departments.create_index([('code',ASCENDING)],unique=True)
+        mongo_db.faculty.create_index([('faculty_id',ASCENDING),('dept_id',ASCENDING)],unique=True,sparse=True)
+        mongo_db.users.create_index([('username',ASCENDING)],unique=True)
+        mongo_db.users.create_index([('email',ASCENDING)],unique=True)
+        print('-'*40+' EduSchedule MongoDB Ready -> http://127.0.0.1:5000')
+    except Exception:
+        print('MongoDB unavailable at startup; configure MONGODB_URI for data APIs')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
