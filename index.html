@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>EduSchedule â€” AI Timetable Generator</title>
+<title>EduSchedule - AI Timetable Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -118,7 +118,7 @@ select option{background:var(--surface);color:var(--text)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--subtle);border-radius:3px}
 
-/* â•â•â• SETUP WIZARD â•â•â• */
+/* SETUP WIZARD */
 .page{max-width:920px;margin:0 auto;padding:40px 24px;position:relative;z-index:1}
 .site-header{display:flex;align-items:baseline;gap:16px;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--border)}
 .site-header h1{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text)}
@@ -172,7 +172,7 @@ select option{background:var(--surface);color:var(--text)}
 .preview-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;color:var(--text)}
 .preview-table tr:last-child td{border-bottom:none}
 .preview-table tr:hover td{background:rgba(255,255,255,.02)}
-.row-ok td:first-child::before{content:'âœ“ ';color:var(--success);font-size:.65rem}
+.row-ok td:first-child::before{content:'OK ';color:var(--success);font-size:.65rem}
 .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
 .stat-chip{padding:4px 12px;border-radius:12px;font-size:.7rem;font-family:var(--mono);border:1px solid var(--border)}
 .stat-ok{background:rgba(69,201,125,.1);color:var(--success);border-color:rgba(69,201,125,.3)}
@@ -234,7 +234,7 @@ select option{background:var(--surface);color:var(--text)}
   <div class="site-header">
     <h1>EduSchedule</h1>
     <span style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">/&nbsp;Department Setup</span>
-    <a href="index.html" class="back-btn">â† Back to App</a>
+    <a href="index.html" class="back-btn">Back to App</a>
   </div>
 
   <div class="stepper" id="stepper">
@@ -243,26 +243,26 @@ select option{background:var(--surface);color:var(--text)}
     <div class="step" data-step="3" onclick="tryGoStep(3)"><div class="step-circle">3</div><div class="step-label">Subjects</div></div>
     <div class="step" data-step="4" onclick="tryGoStep(4)"><div class="step-circle">4</div><div class="step-label">Rooms</div></div>
     <div class="step" data-step="5" onclick="tryGoStep(5)"><div class="step-circle">5</div><div class="step-label">Review</div></div>
-    <div class="step" data-step="6"><div class="step-circle">âœ“</div><div class="step-label">Done</div></div>
+    <div class="step" data-step="6"><div class="step-circle">Done</div><div class="step-label">Done</div></div>
   </div>
 
   <div class="step-panel active" id="panel-1">
     <div class="wiz-card">
-      <div class="wiz-card-title">ðŸ›ï¸ Department Setup via Excel</div>
+      <div class="wiz-card-title">Department Setup via Excel</div>
       <div class="wiz-card-sub">Upload your Excel file with all department data. The file should contain 5 sheets: Department, Faculty, Subjects, Rooms, and SoftConstraints.</div>
       <div class="wiz-info">
-        <strong>Single Excel file with 5 sheets:</strong> Department Â· Faculty Â· Subjects Â· Rooms Â· SoftConstraints<br/>
+        <strong>Single Excel file with 5 sheets:</strong> Department, Faculty, Subjects, Rooms, SoftConstraints<br/>
         Download the template below, fill it in, and upload. All data including soft constraints loads in one go.
       </div>
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <button class="wiz-btn wiz-btn-download" onclick="downloadTemplate()">â¬‡ Download Template (.xlsx)</button>
+        <button class="wiz-btn wiz-btn-download" onclick="downloadTemplate()">Download Template (.xlsx)</button>
       </div>
       <div class="excel-zone" id="excel-dz"
            ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event)">
         <input type="file" accept=".xlsx,.xls" onchange="excelSelected(event)"/>
-        <div class="excel-icon">ðŸ“Š</div>
+        <div class="excel-icon">XLSX</div>
         <div class="excel-title">Drop your Excel file here</div>
-        <div class="excel-sub">One .xlsx file â€¢ 5 sheets inside<br/>Department â€” Faculty â€” Subjects â€” Rooms â€” SoftConstraints</div>
+        <div class="excel-sub">One .xlsx file, 5 sheets inside<br/>Department, Faculty, Subjects, Rooms, SoftConstraints</div>
         <div class="sheet-pills">
           <span class="sheet-pill">Department</span>
           <span class="sheet-pill">Faculty</span>
@@ -274,14 +274,14 @@ select option{background:var(--surface);color:var(--text)}
       <div id="excel-preview-area" style="margin-top:16px"></div>
       <div class="action-row">
         <span class="spacer"></span>
-        <button class="wiz-btn wiz-btn-success" id="excel-import-btn" style="display:none" onclick="runExcelImport()">âœ“ Import & Continue â†’</button>
+        <button class="wiz-btn wiz-btn-success" id="excel-import-btn" style="display:none" onclick="runExcelImport()">Import and Continue</button>
       </div>
     </div>
   </div>
 
   <div class="step-panel" id="panel-2">
     <div class="wiz-card">
-      <div class="wiz-card-title">ðŸ‘©â€ðŸ« Faculty Members</div>
+      <div class="wiz-card-title">Faculty Members</div>
       <div class="wiz-card-sub">Review the faculty imported from Excel. You can edit or add rows before saving.</div>
       <div class="col-headers fac-row">
         <span class="col-h">Full Name *</span><span class="col-h">Faculty ID *</span>
@@ -290,16 +290,16 @@ select option{background:var(--surface);color:var(--text)}
       <div class="row-wrap" id="faculty-rows"></div>
       <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addFacultyRow()">+ Add Row</button>
       <div class="action-row">
-        <button class="wiz-btn wiz-btn-outline" onclick="goStep(1)">â† Back</button>
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(1)">Back</button>
         <span class="spacer"></span>
-        <button class="wiz-btn wiz-btn-primary" onclick="goStep(3)">Next: Subjects â†’</button>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(3)">Next: Subjects</button>
       </div>
     </div>
   </div>
 
   <div class="step-panel" id="panel-3">
     <div class="wiz-card">
-      <div class="wiz-card-title">ðŸ“š Subjects</div>
+      <div class="wiz-card-title">Subjects</div>
       <div class="wiz-card-sub">Review subjects imported from Excel. Link faculty using their Faculty ID.</div>
       <div class="col-headers subj-row">
         <span class="col-h">Name *</span><span class="col-h">Code *</span>
@@ -310,16 +310,16 @@ select option{background:var(--surface);color:var(--text)}
       <div class="row-wrap" id="subject-rows"></div>
       <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addSubjectRow()">+ Add Row</button>
       <div class="action-row">
-        <button class="wiz-btn wiz-btn-outline" onclick="goStep(2)">â† Back</button>
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(2)">Back</button>
         <span class="spacer"></span>
-        <button class="wiz-btn wiz-btn-primary" onclick="goStep(4)">Next: Rooms â†’</button>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(4)">Next: Rooms</button>
       </div>
     </div>
   </div>
 
   <div class="step-panel" id="panel-4">
     <div class="wiz-card">
-      <div class="wiz-card-title">ðŸ« Rooms & Labs</div>
+      <div class="wiz-card-title">Rooms and Labs</div>
       <div class="wiz-card-sub">Review rooms imported from Excel. Theory subjects use classrooms; lab sessions use labs.</div>
       <div class="col-headers room-row">
         <span class="col-h">Room Name *</span><span class="col-h">Type</span>
@@ -328,26 +328,26 @@ select option{background:var(--surface);color:var(--text)}
       <div class="row-wrap" id="room-rows"></div>
       <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addRoomRow()">+ Add Row</button>
       <div class="action-row">
-        <button class="wiz-btn wiz-btn-outline" onclick="goStep(3)">â† Back</button>
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(3)">Back</button>
         <span class="spacer"></span>
-        <button class="wiz-btn wiz-btn-primary" onclick="goStep(5)">Next: Review â†’</button>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(5)">Next: Review</button>
       </div>
     </div>
   </div>
 
   <div class="step-panel" id="panel-5">
     <div class="wiz-card">
-      <div class="wiz-card-title">ðŸ” Review & Save</div>
+      <div class="wiz-card-title">Review and Save</div>
       <div class="wiz-card-sub">Confirm everything before saving to the database. Fix any errors shown below.</div>
       <div id="review-body"></div>
       <div id="review-errors" style="margin-top:12px"></div>
       <div class="action-row">
-        <button class="wiz-btn wiz-btn-outline" onclick="goStep(4)">â† Back</button>
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(4)">Back</button>
         <span class="spacer"></span>
-        <button class="wiz-btn wiz-btn-success" id="save-btn" onclick="runSave()">âœ“ Save to Database</button>
+        <button class="wiz-btn wiz-btn-success" id="save-btn" onclick="runSave()">Save to Database</button>
       </div>
       <div id="save-progress" style="display:none;margin-top:16px">
-        <div style="font-size:.75rem;font-family:var(--mono);color:var(--muted);margin-bottom:5px" id="save-label">Savingâ€¦</div>
+        <div style="font-size:.75rem;font-family:var(--mono);color:var(--muted);margin-bottom:5px" id="save-label">Saving...</div>
         <div class="progress-bar-wrap"><div class="progress-bar" id="save-bar" style="width:0%"></div></div>
         <div class="log-panel" id="save-log"></div>
       </div>
@@ -357,10 +357,10 @@ select option{background:var(--surface);color:var(--text)}
   <div class="step-panel" id="panel-6">
     <div class="wiz-card">
       <div class="complete-hero">
-        <div class="big-check">âœ…</div>
+        <div class="big-check">Done</div>
         <h2>Setup Complete!</h2>
         <p id="done-msg">Your department data has been saved. Head back to generate your timetable with AI.</p>
-        <button class="wiz-btn wiz-btn-primary" onclick="window.showApp()" style="margin:0 auto">â†’ Go to Timetable Generator</button>
+        <button class="wiz-btn wiz-btn-primary" onclick="window.showApp()" style="margin:0 auto">Go to Timetable Generator</button>
       </div>
       <div id="done-stats" class="summary-grid" style="margin-top:0"></div>
     </div>
@@ -459,7 +459,7 @@ function TimetableGrid({entries,onEdit,onDelete,readOnly}){
                       React.createElement('button',{
                         onClick:(ev)=>{ev.stopPropagation();onDelete&&onDelete(e.id)},
                         style:{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:'10px',padding:'0 2px'}
-                      },'âœ•')
+                      },'X')
                     )
                   )
               );
@@ -541,7 +541,7 @@ function EntryModal({entry,subjects,faculty,rooms,depts,onClose,onSave,toast}){
               if(subj&&subj.faculty_id) set('faculty_id',subj.faculty_id);
             }},
               React.createElement('option',{value:''},'Select subject'),
-              filteredSubjects.map(s=>React.createElement('option',{key:s.id,value:s.id},`${s.code} â€” ${s.name}`))
+              filteredSubjects.map(s=>React.createElement('option',{key:s.id,value:s.id},`${s.code} - ${s.name}`))
             )
           ),
           React.createElement('div',{className:'form-group'},
@@ -567,7 +567,7 @@ function EntryModal({entry,subjects,faculty,rooms,depts,onClose,onSave,toast}){
           React.createElement('div',{className:'form-group'},
             React.createElement('label',{className:'form-label'},'Slot *'),
             React.createElement('select',{className:'form-control',value:form.slot_number,onChange:e=>set('slot_number',+e.target.value)},
-              [1,2,3,4,5,6,7,8].map(s=>React.createElement('option',{key:s,value:s},`P${s} â€” ${SLOT_LABELS[s]}`))
+              [1,2,3,4,5,6,7,8].map(s=>React.createElement('option',{key:s,value:s},`P${s} - ${SLOT_LABELS[s]}`))
             )
           ),
           React.createElement('div',{className:'form-group',style:{display:'flex',alignItems:'center',gap:8,paddingTop:20}},
@@ -628,7 +628,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
     try{
       const softConstraints=getSoftConstraints(deptId);
       const r=await api('/generate',{method:'POST',body:{dept_id:+deptId,year,semester:sem,soft_constraints:softConstraints}});
-      toast(`Generated ${r.count} entries âœ¨`,'success');
+      toast(`Generated ${r.count} entries`,'success');
       load();if(onTtChange)onTtChange();
     }catch(e){toast(e.message,'error')}
     setGenerating(false);
@@ -659,7 +659,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
       ),
       React.createElement('div',{className:'controls-row'},
         React.createElement('select',{value:deptId,onChange:e=>setDeptId(e.target.value),style:{minWidth:200}},
-          React.createElement('option',{value:''},'â€” Select Department â€”'),
+          React.createElement('option',{value:''},'Select Department'),
           depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
         ),
         React.createElement('select',{value:year,onChange:e=>setYear(+e.target.value)},
@@ -679,7 +679,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
       ),
       React.createElement('button',{className:'btn btn-ai',onClick:generate,disabled:generating||!deptId},
         generating?React.createElement('div',{className:'spinner'}):Icons.zap,
-        generating?'Generatingâ€¦':'Generate with AI'
+        generating?'Generating...':'Generate with AI'
       )
     ),
     conflicts.length>0&&React.createElement('div',{style:{marginBottom:16}},
@@ -687,7 +687,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
         Icons.alert,React.createElement('strong',{style:{fontSize:'.85rem'}},`${conflicts.length} Conflict(s) Detected`)
       ),
       conflicts.slice(0,3).map((c,i)=>React.createElement('div',{key:i,className:'conflict-badge'},
-        React.createElement('strong',null,`${c.type} Conflict`),` â€” ${c.day}, Slot P${c.slot}`,
+        React.createElement('strong',null,`${c.type} Conflict`),` - ${c.day}, Slot P${c.slot}`,
         c.faculty&&` | Faculty: ${c.faculty}`,c.room&&` | Room: ${c.room}`
       ))
     ),
@@ -701,7 +701,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
         entries.length>0&&React.createElement('button',{className:'btn btn-danger',onClick:clearAll},'Clear All')
       )
     ),
-    loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'}),React.createElement('p',null,'Loading timetableâ€¦')):
+    loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'}),React.createElement('p',null,'Loading timetable...')):
     entries.length===0?React.createElement('div',{className:'empty-state'},
       React.createElement('div',null,Icons.calendar),
       React.createElement('p',null,deptId?'No entries yet. Click "Generate with AI" to get started.':'Select a department to view timetable.')
@@ -720,7 +720,7 @@ function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
             React.createElement('td',null,React.createElement('span',{style:{fontFamily:'var(--mono)',fontSize:'.75rem'}},`P${e.slot_number}`)),
             React.createElement('td',null,e.subject_name),
             React.createElement('td',null,e.faculty_name),
-            React.createElement('td',null,e.room_name||'â€”'),
+            React.createElement('td',null,e.room_name||'-'),
             React.createElement('td',null,React.createElement('span',{className:`badge badge-${e.is_lab?'lab':'theory'}`},e.is_lab?'Lab':'Theory')),
             React.createElement('td',null,React.createElement('span',{style:{fontSize:'.72rem',color:'var(--muted)'}},e.created_by)),
             React.createElement('td',null,
@@ -775,14 +775,14 @@ function FacultyPage({faculty,depts,toast,ttVersion}){
           onChange:e=>{setSelectedDept(e.target.value);setSelected('');setSchedule(null);},
           style:{minWidth:220}
         },
-          React.createElement('option',{value:''},'â€” All Departments â€”'),
+          React.createElement('option',{value:''},'All Departments'),
           depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
         )
       ),
       React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
         React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Faculty'),
         React.createElement('select',{value:selected,onChange:e=>setSelected(e.target.value),style:{minWidth:260}},
-          React.createElement('option',{value:''},selectedDept?'â€” Select Faculty â€”':'â€” Select Department First â€”'),
+          React.createElement('option',{value:''},selectedDept?'Select Faculty':'Select Department First'),
           filteredFaculty.map(f=>React.createElement('option',{key:f.id,value:f.id},`${f.name} (${f.role})`))
         )
       ),
@@ -811,7 +811,7 @@ function FacultyPage({faculty,depts,toast,ttVersion}){
             slots.length===0?
               React.createElement('div',{style:{fontSize:'.78rem',color:'var(--subtle)',padding:'6px 0'}},'No classes'):
               slots.map(e=>React.createElement('div',{key:e.id,className:'fac-slot'},
-                React.createElement('div',{className:'fac-time'},`${e.start_time}â€“${e.end_time}`),
+                React.createElement('div',{className:'fac-time'},`${e.start_time}-${e.end_time}`),
                 React.createElement('div',{className:`fac-entry${e.is_lab?' lab':''}`},
                   React.createElement('div',{style:{fontWeight:600,fontSize:'.82rem'}},e.subject_name),
                   React.createElement('div',{style:{fontSize:'.73rem',color:'var(--muted)',marginTop:2}},
@@ -859,18 +859,18 @@ function LabPage({rooms,depts,toast,ttVersion}){
           onChange:e=>{setSelectedDept(e.target.value);setSelected('');setSchedule(null);},
           style:{minWidth:220}
         },
-          React.createElement('option',{value:''},'â€” All Departments â€”'),
+          React.createElement('option',{value:''},'All Departments'),
           depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
         )
       ),
       React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
         React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Lab'),
         React.createElement('select',{value:selected,onChange:e=>setSelected(e.target.value),style:{minWidth:220}},
-          React.createElement('option',{value:''},selectedDept?'â€” Select Lab â€”':'â€” Select Department First â€”'),
+          React.createElement('option',{value:''},selectedDept?'Select Lab':'Select Department First'),
           filteredLabs.map(r=>React.createElement('option',{key:r.id,value:r.id},r.name))
         )
       ),
-      selected&&React.createElement('button',{className:'btn btn-ghost',style:{marginBottom:2},onClick:()=>load(selected)},'â†» Refresh')
+      selected&&React.createElement('button',{className:'btn btn-ghost',style:{marginBottom:2},onClick:()=>load(selected)},'Refresh')
     ),
     loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'})):
     !schedule?React.createElement('div',{className:'empty-state'},React.createElement('p',null,'Select a lab to view its schedule')):
@@ -942,7 +942,7 @@ function ManagePage({depts,subjects,faculty,rooms,onRefresh,toast}){
           React.createElement('input',{ref:fileRef,type:'file',accept:'.xlsx,.xls',style:{display:'none'},onChange:handleExcelUpload}),
           React.createElement('span',{className:'btn btn-primary',style:{pointerEvents:'none'}},
             uploading?React.createElement('div',{className:'spinner'}):Icons.upload,
-            uploading?'Importingâ€¦':'Upload Excel File'
+            uploading?'Importing...':'Upload Excel File'
           )
         ),
         React.createElement('span',{style:{fontSize:'.75rem',color:'var(--muted)'}},'Accepted: .xlsx, .xls')
@@ -1058,19 +1058,19 @@ function LegacyFeaturesPage({depts,toast,onRefresh}){
   useEffect(()=>{load()},[]);
   const authSubmit=async(kind)=>{try{const u=await api('/auth/'+kind,{method:'POST',body:JSON.stringify(auth)});setUser(u);toast(kind==='login'?'Logged in':'Account created','success')}catch(e){toast(e.message,'error')}};
   const addGroup=async()=>{try{await api('/student-groups',{method:'POST',body:JSON.stringify(group)});toast('Student batch saved in MongoDB','success');setGroup({...group,name:''});load()}catch(e){toast(e.message,'error')}};
-  const runGA=async()=>{try{const r=await api('/generate/genetic',{method:'POST',body:JSON.stringify(cfg)});toast(`${r.message} Â· fitness ${Number(r.fitness).toFixed(3)}`,'success');onRefresh()}catch(e){toast(e.message,'error')}};
+  const runGA=async()=>{try{const r=await api('/generate/genetic',{method:'POST',body:JSON.stringify(cfg)});toast(`${r.message} - fitness ${Number(r.fitness).toFixed(3)}`,'success');onRefresh()}catch(e){toast(e.message,'error')}};
   const tabs=[['generator','Genetic Generator'],['batches','Student Batches'],['account','Account'],['guide','How to Use'],['about','About & Features']];
   return React.createElement('div',{style:{width:'100%'}},
     React.createElement('div',{className:'tabs'},tabs.map(([k,l])=>React.createElement('button',{key:k,className:`tab${tab===k?' active':''}`,onClick:()=>setTab(k)},l))),
-    tab==='generator'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:8}},'Genetic Algorithm Scheduler'),React.createElement('p',{style:{color:'var(--muted)',marginBottom:18}},'Elitism, crossover, roulette-style parent selection, fitness scoring and swap mutationâ€”ported from the source scheduler and persisted to MongoDB.'),
+    tab==='generator'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:8}},'Genetic Algorithm Scheduler'),React.createElement('p',{style:{color:'var(--muted)',marginBottom:18}},'Elitism, crossover, roulette-style parent selection, fitness scoring and swap mutation - ported from the source scheduler and persisted to MongoDB.'),
       React.createElement('div',{className:'form-row'},React.createElement('div',{className:'form-group'},React.createElement('label',null,'Department'),React.createElement('select',{className:'form-control',value:cfg.dept_id,onChange:e=>setCfg({...cfg,dept_id:e.target.value})},React.createElement('option',{value:''},'Select'),depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name)))),field('Year','year','number',cfg,setCfg),field('Semester','semester','number',cfg,setCfg)),
-      React.createElement('div',{className:'form-row'},field('Population (20â€“1000)','population_size','number',cfg,setCfg),field('Generations (1â€“500)','max_generations','number',cfg,setCfg),field('Mutation rate','mutation_rate','number',cfg,setCfg)),React.createElement('button',{className:'btn btn-ai',onClick:runGA},'Generate with GA')),
+      React.createElement('div',{className:'form-row'},field('Population (20-1000)','population_size','number',cfg,setCfg),field('Generations (1-500)','max_generations','number',cfg,setCfg),field('Mutation rate','mutation_rate','number',cfg,setCfg)),React.createElement('button',{className:'btn btn-ai',onClick:runGA},'Generate with GA')),
     tab==='batches'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:16}},'Student Batches & Subject Hours'),
       React.createElement('div',{className:'form-row'},field('Batch name','name','text',group,setGroup),React.createElement('div',{className:'form-group'},React.createElement('label',null,'Department'),React.createElement('select',{className:'form-control',value:group.dept_id,onChange:e=>setGroup({...group,dept_id:e.target.value})},React.createElement('option',{value:''},'Select'),depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name)))),field('Year','year','number',group,setGroup),field('Semester','semester','number',group,setGroup)),
       React.createElement('h3',{style:{margin:'10px 0'}},'Subjects'),group.subjects.map((s,i)=>React.createElement('div',{key:i,className:'form-row'},React.createElement('input',{className:'form-control',placeholder:'Subject',value:s.name,onChange:e=>{const a=[...group.subjects];a[i]={...s,name:e.target.value};setGroup({...group,subjects:a})}}),React.createElement('input',{className:'form-control',type:'number',placeholder:'Hours',value:s.hours,onChange:e=>{const a=[...group.subjects];a[i]={...s,hours:Number(e.target.value)};setGroup({...group,subjects:a})}}))),
       React.createElement('div',{style:{display:'flex',gap:8,margin:'12px 0'}},React.createElement('button',{className:'btn btn-ghost',onClick:()=>setGroup({...group,subjects:[...group.subjects,{name:'',hours:3}]})},'Add Subject'),React.createElement('button',{className:'btn btn-primary',onClick:addGroup},'Save Batch')),
-      React.createElement('div',{style:{marginTop:18}},groups.map(g=>React.createElement('div',{key:g.id,className:'conflict-badge',style:{borderColor:'var(--border)',background:'var(--surface2)'}},React.createElement('b',null,g.name),` Â· Year ${g.year} Â· Semester ${g.semester} Â· ${(g.subjects||[]).length} subjects`)))),
-    tab==='account'&&React.createElement('div',{className:'card'},user?React.createElement(React.Fragment,null,React.createElement('h2',null,`Welcome, ${user.username}`),React.createElement('p',{style:{color:'var(--muted)',margin:'8px 0 16px'}},`${user.email} Â· ${user.country||'Country not set'}`),React.createElement('button',{className:'btn btn-danger',onClick:async()=>{await api('/auth/logout',{method:'POST'});setUser(null)}},'Logout')):React.createElement(React.Fragment,null,React.createElement('h2',{style:{marginBottom:16}},'Login or Sign Up'),React.createElement('div',{className:'form-row'},field('Username','username'),field('Email','email'),field('Country','country'),field('Password','password','password')),React.createElement('div',{style:{display:'flex',gap:8}},React.createElement('button',{className:'btn btn-primary',onClick:()=>authSubmit('login')},'Login'),React.createElement('button',{className:'btn btn-ghost',onClick:()=>authSubmit('register')},'Create Account')))),
+      React.createElement('div',{style:{marginTop:18}},groups.map(g=>React.createElement('div',{key:g.id,className:'conflict-badge',style:{borderColor:'var(--border)',background:'var(--surface2)'}},React.createElement('b',null,g.name),` - Year ${g.year} - Semester ${g.semester} - ${(g.subjects||[]).length} subjects`)))),
+    tab==='account'&&React.createElement('div',{className:'card'},user?React.createElement(React.Fragment,null,React.createElement('h2',null,`Welcome, ${user.username}`),React.createElement('p',{style:{color:'var(--muted)',margin:'8px 0 16px'}},`${user.email} - ${user.country||'Country not set'}`),React.createElement('button',{className:'btn btn-danger',onClick:async()=>{await api('/auth/logout',{method:'POST'});setUser(null)}},'Logout')):React.createElement(React.Fragment,null,React.createElement('h2',{style:{marginBottom:16}},'Login or Sign Up'),React.createElement('div',{className:'form-row'},field('Username','username'),field('Email','email'),field('Country','country'),field('Password','password','password')),React.createElement('div',{style:{display:'flex',gap:8}},React.createElement('button',{className:'btn btn-primary',onClick:()=>authSubmit('login')},'Login'),React.createElement('button',{className:'btn btn-ghost',onClick:()=>authSubmit('register')},'Create Account')))),
     tab==='guide'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:14}},'How to Use'),[['1','Set up department data','Add faculty, rooms and subjects manually or import the Excel template.'],['2','Define batches','Record every student batch, its subjects and weekly required hours.'],['3','Choose a generator','Use the destination smart generator or the migrated genetic algorithm controls.'],['4','Review and adjust','Open Master Timetable, inspect conflicts and edit individual periods.'],['5','Use role views','Open Faculty Schedule and Lab Schedule for dedicated views and printing.']].map(([n,t,d])=>React.createElement('div',{key:n,className:'conflict-badge',style:{borderColor:'var(--border)',background:'var(--surface2)'}},React.createElement('b',null,`${n}. ${t}`),React.createElement('div',{style:{color:'var(--muted)',marginTop:4}},d)))),
     tab==='about'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:10}},'Complete Scheduler'),React.createElement('p',{style:{color:'var(--muted)',lineHeight:1.7}},'Student-friendly and teacher-friendly timetable creation, fully online workflows, printable schedules, guided setup, user accounts, batch and subject-hour input, teacher assignment balancing, conflict detection, room/lab scheduling, Excel import, AI generation and genetic-algorithm generation are unified here. All application records use MongoDB.'))
   );
