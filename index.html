@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EduSchedule â€” AI Timetable Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f7ff;--surface:#ffffff;--surface2:#f0eeff;--border:#ddd8f8;
+  --accent:#7c3aed;--accent2:#6d28d9;--accent3:#5b21b6;--gold:#d97706;--danger:#dc2626;
+  --success:#16a34a;--text:#1e1b4b;--muted:#6b7280;--subtle:#c4b5fd;
+  --font:'DM Sans',sans-serif;--serif:'DM Serif Display',serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 0%,rgba(124,58,237,.05) 0%,transparent 50%),radial-gradient(ellipse at 90% 100%,rgba(109,40,217,.03) 0%,transparent 50%);pointer-events:none;z-index:0}
+.shell{display:flex;height:100vh;position:relative;z-index:1;width:100vw;overflow:hidden}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);box-shadow:1px 0 8px rgba(124,58,237,.06);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-family:var(--serif);font-size:1.3rem;color:var(--accent);letter-spacing:-0.02em}
+.sidebar-logo span{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-family:var(--mono)}
+.sidebar-nav{padding:12px 0;flex:1;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-family:var(--mono)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:all .15s;font-size:.85rem;color:var(--muted);border-left:2px solid transparent;font-weight:500}
+.nav-item:hover{color:var(--accent);background:rgba(124,58,237,.05)}
+.nav-item.active{color:var(--accent);background:rgba(124,58,237,.08);border-left-color:var(--accent)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;background:var(--surface);flex-shrink:0;box-shadow:0 1px 4px rgba(124,58,237,.06)}
+.topbar-title{font-family:var(--serif);font-size:1.1rem;flex:1}
+.content{flex:1;overflow-y:auto;padding:24px 32px;box-sizing:border-box}
+.controls-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+select,input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:.85rem;outline:none;transition:border .15s}
+select:focus,input:focus{border-color:var(--accent)}
+select option{background:var(--surface);color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font);font-size:.85rem;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent3);transform:translateY(-1px)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{opacity:.85}
+.btn-success{background:var(--success);color:#0d1a10}
+.btn-success:hover{opacity:.85}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2)}
+.btn-ai{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;font-weight:600}
+.btn-ai:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%}
+.ai-panel-title{font-family:var(--serif);font-size:1rem;margin-bottom:4px;display:flex;align-items:center;gap:8px}.card-title{font-family:var(--serif);font-size:1.05rem;margin-bottom:4px}
+.card-subtitle{font-size:.78rem;color:var(--muted)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(124,58,237,.06)}
+.stat-val{font-family:var(--mono);font-size:1.8rem;font-weight:600;color:var(--accent)}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
+.tt-wrap{overflow-x:auto;width:100%}
+.tt-grid{display:grid;grid-template-columns:100px repeat(8,1fr);min-width:1100px;width:100%;gap:2px}
+.tt-head{background:var(--surface2);color:var(--accent2)!important;padding:8px 6px;font-size:.72rem;font-family:var(--mono);color:var(--muted);text-align:center;border-radius:6px}
+.tt-day-label{background:var(--surface2);color:var(--accent)!important;font-weight:700;padding:8px 10px;font-size:.75rem;font-weight:600;color:var(--muted);display:flex;align-items:center;border-radius:6px}
+.tt-cell{background:var(--surface);border:1px solid var(--border);border-radius:6px;min-height:72px;padding:4px;display:flex;flex-direction:column;gap:2px;border:1px solid transparent;transition:border .15s}
+.tt-cell:hover{border-color:var(--border)}
+.tt-cell.empty{opacity:.4}
+.tt-entry{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(109,40,217,.04));border:1px solid rgba(124,58,237,.2);border-radius:5px;padding:4px 6px;cursor:pointer;transition:all .15s;position:relative}
+.tt-entry:hover{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(109,40,217,.08));border-color:rgba(124,58,237,.4)}
+.tt-entry.lab{background:linear-gradient(135deg,rgba(69,201,125,.12),rgba(69,201,125,.04));border-color:rgba(69,201,125,.3)}
+.tt-entry.lab:hover{background:linear-gradient(135deg,rgba(69,201,125,.22),rgba(69,201,125,.1))}
+.tt-entry.filler{background:linear-gradient(135deg,rgba(217,119,6,.06),rgba(217,119,6,.02));border:1px dashed rgba(217,119,6,.3);cursor:default}
+.tt-entry.filler:hover{background:linear-gradient(135deg,rgba(232,184,75,.12),rgba(232,184,75,.06));border-color:rgba(232,184,75,.5)}
+.tt-entry .subj{font-size:.7rem;font-weight:700;color:var(--text);line-height:1.2}
+.tt-entry .fac{font-size:.63rem;color:var(--muted);margin-top:1px}
+.tt-entry .room{font-size:.6rem;color:var(--subtle);margin-top:1px;font-family:var(--mono)}
+.entry-tag{display:inline-block;font-size:.55rem;font-family:var(--mono);padding:1px 4px;border-radius:3px;background:rgba(69,201,125,.2);color:var(--success);margin-bottom:2px}
+.modal-overlay{position:fixed;inset:0;background:rgba(30,27,75,.4);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(124,58,237,.15)}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h2{font-family:var(--serif);font-size:1.1rem}
+.modal-body{padding:20px 24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.form-group{margin-bottom:14px}
+.form-label{font-size:.78rem;color:var(--muted);margin-bottom:5px;display:block}
+.form-control{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-family:var(--font);font-size:.85rem;outline:none}
+.form-control:focus{border-color:var(--accent)}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;border:1px solid var(--border);margin-bottom:20px;width:fit-content}
+.tab{padding:6px 14px;border-radius:7px;cursor:pointer;font-size:.82rem;color:var(--muted);transition:all .15s}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.25)}
+.ai-panel{background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(109,40,217,.03));border:1px solid rgba(124,58,237,.15);border-radius:12px;padding:20px;margin-bottom:20px;width:100%}
+.ai-panel-title{font-family:var(--serif);font-size:1rem;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:.83rem;box-shadow:0 8px 24px rgba(124,58,237,.12);pointer-events:auto;display:flex;align-items:center;gap:8px;animation:slideIn .2s ease;max-width:320px}
+.toast.success{border-left:3px solid var(--success)}
+.toast.error{border-left:3px solid var(--danger)}
+.toast.info{border-left:3px solid var(--accent)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.conflict-badge{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:.8rem}
+.conflict-badge strong{color:var(--danger)}
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{padding:8px 12px;text-align:left;font-size:.7rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.data-table td{padding:10px 12px;border-bottom:1px solid rgba(124,58,237,.1);vertical-align:middle}
+.data-table tr:hover td{background:rgba(124,58,237,.04)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.67rem;font-family:var(--mono);font-weight:500}
+.badge-theory{background:rgba(124,58,237,.1);color:var(--accent)}
+.badge-lab{background:rgba(22,163,74,.1);color:var(--success)}
+.badge-coord{background:rgba(217,119,6,.1);color:var(--gold)}
+.spinner{width:16px;height:16px;border:2px solid rgba(124,58,237,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;gap:16px;color:var(--muted)}
+.loading-state .spinner{width:32px;height:32px;border-width:3px;border-color:rgba(124,58,237,.2);border-top-color:var(--accent)}
+.fac-day{margin-bottom:16px}
+.fac-day-label{font-size:.75rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.fac-slot{display:flex;gap:10px;align-items:stretch;margin-bottom:6px}
+.fac-time{font-family:var(--mono);font-size:.65rem;color:var(--subtle);width:80px;flex-shrink:0;display:flex;align-items:center}
+.fac-entry{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;border-left:3px solid var(--accent)}
+.fac-entry.lab{border-left-color:var(--success)}
+.empty-state{text-align:center;padding:60px;color:var(--muted)}
+.empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+.empty-state p{font-size:.9rem}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--subtle);border-radius:3px}
+
+/* â•â•â• SETUP WIZARD â•â•â• */
+.page{max-width:920px;margin:0 auto;padding:40px 24px;position:relative;z-index:1}
+.site-header{display:flex;align-items:baseline;gap:16px;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.site-header h1{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.back-btn{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:5px 12px;border-radius:6px;transition:all .15s}
+.back-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+.stepper{display:flex;align-items:flex-start;gap:0;margin-bottom:40px}
+.step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;cursor:pointer}
+.step:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--border)}
+.step.done::after{background:var(--accent)}
+.step-circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.7rem;font-weight:500;background:var(--surface2);color:var(--muted);z-index:1;transition:all .2s}
+.step.active .step-circle{border-color:var(--accent);color:var(--accent2);background:rgba(139,92,246,.12)}
+.step.done .step-circle{background:var(--accent);border-color:var(--accent);color:#fff;font-size:.8rem}
+.step-label{font-size:.62rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:6px;text-align:center;line-height:1.3}
+.step.active .step-label{color:var(--accent2)}
+.step.done .step-label{color:var(--accent)}
+.wiz-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:20px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.wiz-card-title{font-family:var(--serif);font-size:1.2rem;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.wiz-card-sub{font-size:.82rem;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:.68rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.wiz-form-control{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-family:var(--font);font-size:.85rem;outline:none;transition:border .15s;width:100%}
+.wiz-form-control:focus{border-color:var(--accent)}
+.row-wrap{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.col-headers{display:grid;gap:7px;padding:0 10px 2px}
+.col-headers.fac-row{grid-template-columns:2fr 2fr 1.4fr 1fr 26px}
+.col-headers.subj-row{grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 2fr 26px}
+.col-headers.room-row{grid-template-columns:2fr 1.3fr 1fr 26px}
+.col-h{font-size:.59rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.wiz-input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 8px;border-radius:6px;font-family:var(--font);font-size:.78rem;outline:none;width:100%;transition:border .15s}
+.wiz-input:focus{border-color:var(--accent)}
+.wiz-select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 8px;border-radius:6px;font-family:var(--font);font-size:.78rem;outline:none;width:100%}
+.wiz-select option{background:var(--surface2)}
+.del-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;align-self:end}
+.del-btn:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.excel-zone{border:2px dashed var(--border);border-radius:10px;padding:36px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--surface2)}
+.excel-zone:hover,.excel-zone.drag{border-color:var(--accent);background:rgba(139,92,246,.06)}
+.excel-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.excel-icon{font-size:2.8rem;margin-bottom:10px}
+.excel-title{font-family:var(--serif);font-size:1rem;font-weight:600;margin-bottom:4px;color:var(--text)}
+.excel-sub{font-size:.78rem;color:var(--muted);line-height:1.5}
+.sheet-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.sheet-pill{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:.67rem;font-family:var(--mono);color:var(--muted)}
+.preview-tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:8px;overflow:hidden;width:fit-content;margin:14px 0 10px}
+.ptab{padding:5px 12px;font-size:.72rem;font-family:var(--mono);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-radius:6px}
+.ptab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.preview-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+.preview-table{width:100%;border-collapse:collapse;font-size:.74rem}
+.preview-table th{padding:7px 10px;font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
+.preview-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;color:var(--text)}
+.preview-table tr:last-child td{border-bottom:none}
+.preview-table tr:hover td{background:rgba(255,255,255,.02)}
+.row-ok td:first-child::before{content:'âœ“ ';color:var(--success);font-size:.65rem}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.stat-chip{padding:4px 12px;border-radius:12px;font-size:.7rem;font-family:var(--mono);border:1px solid var(--border)}
+.stat-ok{background:rgba(69,201,125,.1);color:var(--success);border-color:rgba(69,201,125,.3)}
+.stat-err{background:rgba(224,85,85,.1);color:var(--danger);border-color:rgba(224,85,85,.3)}
+.stat-warn{background:rgba(232,184,75,.1);color:var(--gold);border-color:rgba(232,184,75,.3)}
+.wiz-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.62rem;font-family:var(--mono);text-transform:uppercase}
+.wiz-badge-theory{background:rgba(139,92,246,.15);color:var(--accent2)}
+.wiz-badge-lab{background:rgba(69,201,125,.15);color:var(--success)}
+.wiz-badge-coord{background:rgba(232,184,75,.15);color:var(--gold)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0}
+.sum-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface2)}
+.sum-val{font-family:var(--mono);font-size:1.7rem;font-weight:500;color:var(--text)}
+.sum-label{font-size:.65rem;color:var(--muted);margin-top:2px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.sum-ok .sum-val{color:var(--success)}
+.sum-err .sum-val{color:var(--danger)}
+.wiz-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font);font-size:.85rem;font-weight:500;transition:all .15s}
+.wiz-btn-primary{background:var(--accent);color:#fff}
+.wiz-btn-primary:hover{background:var(--accent3);transform:translateY(-1px)}
+.wiz-btn-outline{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.wiz-btn-outline:hover{background:var(--border)}
+.wiz-btn-success{background:var(--success);color:#0d1a10}
+.wiz-btn-success:hover{opacity:.88}
+.wiz-btn-download{background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-family:var(--mono);font-size:.72rem;padding:7px 14px;border-radius:8px;gap:5px}
+.wiz-btn-download:hover{background:var(--surface);color:var(--text);border-color:var(--accent)}
+.wiz-btn:disabled{opacity:.45;cursor:not-allowed}
+.action-row{display:flex;gap:10px;align-items:center;margin-top:22px}
+.action-row .spacer{flex:1}
+.progress-bar-wrap{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-top:10px}
+.progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .35s ease}
+.log-panel{background:var(--bg);color:#a8f5c8;border-radius:8px;padding:14px;font-family:var(--mono);font-size:.7rem;max-height:180px;overflow-y:auto;margin-top:12px;line-height:1.8;border:1px solid var(--border)}
+.log-err{color:#ff8a8a}
+.log-ok{color:#a8f5c8}
+.log-info{color:#80c8ff}
+.log-warn{color:#ffd080}
+.step-panel{display:none}
+.step-panel.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wiz-info{background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:.78rem;color:var(--accent2);line-height:1.6}
+.wiz-info strong{font-weight:600;color:var(--text)}
+.complete-hero{text-align:center;padding:36px 20px}
+.complete-hero .big-check{font-size:3.5rem;margin-bottom:14px}
+.complete-hero h2{font-family:var(--serif);font-size:1.8rem;font-weight:700;margin-bottom:8px;color:var(--text)}
+.complete-hero p{color:var(--muted);font-size:.88rem;max-width:420px;margin:0 auto 22px;line-height:1.5}
+
+#setup-wrapper{display:none;background:var(--bg);min-height:100vh}
+#setup-wrapper.visible{display:block}
+#app-wrapper{display:flex;height:100vh}
+#app-wrapper.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div id="app-wrapper">
+  <div id="app"></div>
+</div>
+
+<div id="setup-wrapper">
+  <div class="page">
+  <div class="site-header">
+    <h1>EduSchedule</h1>
+    <span style="font-family:var(--mono);font-size:.7rem;color:var(--muted)">/&nbsp;Department Setup</span>
+    <a href="index.html" class="back-btn">â† Back to App</a>
+  </div>
+
+  <div class="stepper" id="stepper">
+    <div class="step active" data-step="1" onclick="tryGoStep(1)"><div class="step-circle">1</div><div class="step-label">Dept</div></div>
+    <div class="step" data-step="2" onclick="tryGoStep(2)"><div class="step-circle">2</div><div class="step-label">Faculty</div></div>
+    <div class="step" data-step="3" onclick="tryGoStep(3)"><div class="step-circle">3</div><div class="step-label">Subjects</div></div>
+    <div class="step" data-step="4" onclick="tryGoStep(4)"><div class="step-circle">4</div><div class="step-label">Rooms</div></div>
+    <div class="step" data-step="5" onclick="tryGoStep(5)"><div class="step-circle">5</div><div class="step-label">Review</div></div>
+    <div class="step" data-step="6"><div class="step-circle">âœ“</div><div class="step-label">Done</div></div>
+  </div>
+
+  <div class="step-panel active" id="panel-1">
+    <div class="wiz-card">
+      <div class="wiz-card-title">ðŸ›ï¸ Department Setup via Excel</div>
+      <div class="wiz-card-sub">Upload your Excel file with all department data. The file should contain 5 sheets: Department, Faculty, Subjects, Rooms, and SoftConstraints.</div>
+      <div class="wiz-info">
+        <strong>Single Excel file with 5 sheets:</strong> Department Â· Faculty Â· Subjects Â· Rooms Â· SoftConstraints<br/>
+        Download the template below, fill it in, and upload. All data including soft constraints loads in one go.
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="wiz-btn wiz-btn-download" onclick="downloadTemplate()">â¬‡ Download Template (.xlsx)</button>
+      </div>
+      <div class="excel-zone" id="excel-dz"
+           ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event)">
+        <input type="file" accept=".xlsx,.xls" onchange="excelSelected(event)"/>
+        <div class="excel-icon">ðŸ“Š</div>
+        <div class="excel-title">Drop your Excel file here</div>
+        <div class="excel-sub">One .xlsx file â€¢ 5 sheets inside<br/>Department â€” Faculty â€” Subjects â€” Rooms â€” SoftConstraints</div>
+        <div class="sheet-pills">
+          <span class="sheet-pill">Department</span>
+          <span class="sheet-pill">Faculty</span>
+          <span class="sheet-pill">Subjects</span>
+          <span class="sheet-pill">Rooms</span>
+          <span class="sheet-pill">SoftConstraints</span>
+        </div>
+      </div>
+      <div id="excel-preview-area" style="margin-top:16px"></div>
+      <div class="action-row">
+        <span class="spacer"></span>
+        <button class="wiz-btn wiz-btn-success" id="excel-import-btn" style="display:none" onclick="runExcelImport()">âœ“ Import & Continue â†’</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="panel-2">
+    <div class="wiz-card">
+      <div class="wiz-card-title">ðŸ‘©â€ðŸ« Faculty Members</div>
+      <div class="wiz-card-sub">Review the faculty imported from Excel. You can edit or add rows before saving.</div>
+      <div class="col-headers fac-row">
+        <span class="col-h">Full Name *</span><span class="col-h">Faculty ID *</span>
+        <span class="col-h">Role</span><span class="col-h">Max Hrs/Wk</span><span class="col-h"></span>
+      </div>
+      <div class="row-wrap" id="faculty-rows"></div>
+      <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addFacultyRow()">+ Add Row</button>
+      <div class="action-row">
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(1)">â† Back</button>
+        <span class="spacer"></span>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(3)">Next: Subjects â†’</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="panel-3">
+    <div class="wiz-card">
+      <div class="wiz-card-title">ðŸ“š Subjects</div>
+      <div class="wiz-card-sub">Review subjects imported from Excel. Link faculty using their Faculty ID.</div>
+      <div class="col-headers subj-row">
+        <span class="col-h">Name *</span><span class="col-h">Code *</span>
+        <span class="col-h">Year</span><span class="col-h">Sem</span>
+        <span class="col-h">Type</span><span class="col-h">Hrs/Wk</span>
+        <span class="col-h">Faculty ID</span><span class="col-h"></span>
+      </div>
+      <div class="row-wrap" id="subject-rows"></div>
+      <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addSubjectRow()">+ Add Row</button>
+      <div class="action-row">
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(2)">â† Back</button>
+        <span class="spacer"></span>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(4)">Next: Rooms â†’</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="panel-4">
+    <div class="wiz-card">
+      <div class="wiz-card-title">ðŸ« Rooms & Labs</div>
+      <div class="wiz-card-sub">Review rooms imported from Excel. Theory subjects use classrooms; lab sessions use labs.</div>
+      <div class="col-headers room-row">
+        <span class="col-h">Room Name *</span><span class="col-h">Type</span>
+        <span class="col-h">Capacity</span><span class="col-h"></span>
+      </div>
+      <div class="row-wrap" id="room-rows"></div>
+      <button class="wiz-btn wiz-btn-outline" style="padding:6px 14px;font-size:.75rem;margin-top:6px" onclick="addRoomRow()">+ Add Row</button>
+      <div class="action-row">
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(3)">â† Back</button>
+        <span class="spacer"></span>
+        <button class="wiz-btn wiz-btn-primary" onclick="goStep(5)">Next: Review â†’</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="panel-5">
+    <div class="wiz-card">
+      <div class="wiz-card-title">ðŸ” Review & Save</div>
+      <div class="wiz-card-sub">Confirm everything before saving to the database. Fix any errors shown below.</div>
+      <div id="review-body"></div>
+      <div id="review-errors" style="margin-top:12px"></div>
+      <div class="action-row">
+        <button class="wiz-btn wiz-btn-outline" onclick="goStep(4)">â† Back</button>
+        <span class="spacer"></span>
+        <button class="wiz-btn wiz-btn-success" id="save-btn" onclick="runSave()">âœ“ Save to Database</button>
+      </div>
+      <div id="save-progress" style="display:none;margin-top:16px">
+        <div style="font-size:.75rem;font-family:var(--mono);color:var(--muted);margin-bottom:5px" id="save-label">Savingâ€¦</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="save-bar" style="width:0%"></div></div>
+        <div class="log-panel" id="save-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="panel-6">
+    <div class="wiz-card">
+      <div class="complete-hero">
+        <div class="big-check">âœ…</div>
+        <h2>Setup Complete!</h2>
+        <p id="done-msg">Your department data has been saved. Head back to generate your timetable with AI.</p>
+        <button class="wiz-btn wiz-btn-primary" onclick="window.showApp()" style="margin:0 auto">â†’ Go to Timetable Generator</button>
+      </div>
+      <div id="done-stats" class="summary-grid" style="margin-top:0"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useEffect,useCallback,useRef} = React;
+const API = window.location.origin + '/api';
+
+const Icon = ({d,size=16})=>React.createElement('svg',{width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},React.createElement('path',{d}));
+const Icons = {
+  grid:React.createElement(Icon,{d:"M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"}),
+  users:React.createElement(Icon,{d:"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"}),
+  book:React.createElement(Icon,{d:"M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"}),
+  home:React.createElement(Icon,{d:"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"}),
+  zap:React.createElement(Icon,{d:"M13 2L3 14h9l-1 8 10-12h-9l1-8z"}),
+  alert:React.createElement(Icon,{d:"M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"}),
+  edit:React.createElement(Icon,{d:"M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"}),
+  trash:React.createElement(Icon,{d:"M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"}),
+  plus:React.createElement(Icon,{d:"M12 5v14M5 12h14"}),
+  x:React.createElement(Icon,{d:"M18 6L6 18M6 6l12 12"}),
+  check:React.createElement(Icon,{d:"M20 6L9 17l-5-5"}),
+  flask:React.createElement(Icon,{d:"M9 3h6M9 3v6l-4 8a2 2 0 0 0 1.8 2.8h10.4A2 2 0 0 0 19 17l-4-8V3"}),
+  calendar:React.createElement(Icon,{d:"M8 7V3M16 7V3M3 11h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"}),
+  upload:React.createElement(Icon,{d:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"}),
+};
+
+function ToastContainer({toasts}){
+  return React.createElement('div',{className:'toast-wrap'},
+    toasts.map(t=>React.createElement('div',{key:t.id,className:`toast ${t.type}`},
+      t.type==='success'?Icons.check:t.type==='error'?Icons.alert:Icons.zap,
+      React.createElement('span',null,t.msg)
+    ))
+  );
+}
+function useToast(){
+  const [toasts,setToasts]=useState([]);
+  const add=(msg,type='info')=>{
+    const id=Date.now();
+    setToasts(p=>[...p,{id,msg,type}]);
+    setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),3500);
+  };
+  return {toasts,toast:(m,t)=>add(m,t)};
+}
+
+async function api(path,opts={}){
+  const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts,
+    body:opts.body?JSON.stringify(opts.body):undefined});
+  const data=await r.json();
+  if(!r.ok) throw new Error(data.error||'Request failed');
+  return data;
+}
+
+const SLOT_LABELS=['','8:30-9:20','9:20-10:10','10:25-11:15','11:15-12:05','13:10-14:00','14:00-14:50','15:05-15:55','15:55-16:45'];
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+function TimetableGrid({entries,onEdit,onDelete,readOnly}){
+  const byDaySlot={};
+  DAYS.forEach(d=>{byDaySlot[d]={};for(let s=1;s<=8;s++)byDaySlot[d][s]=[]});
+  entries.forEach(e=>{if(byDaySlot[e.day])byDaySlot[e.day][e.slot_number]?.push(e)});
+
+  return React.createElement('div',{className:'tt-wrap'},
+    React.createElement('div',{className:'tt-grid'},
+      React.createElement('div',{className:'tt-head'},''),
+      ...[1,2,3,4,5,6,7,8].map(s=>React.createElement('div',{key:s,className:'tt-head'},
+        React.createElement('div',null,`P${s}`),
+        React.createElement('div',{style:{fontSize:'.58rem',opacity:.6}},SLOT_LABELS[s])
+      )),
+      ...DAYS.map(day=>[
+        React.createElement('div',{key:day,className:'tt-day-label'},day.slice(0,3)),
+        ...[1,2,3,4,5,6,7,8].map(slot=>{
+          const ents=byDaySlot[day][slot]||[];
+          return React.createElement('div',{key:slot,className:`tt-cell${ents.length===0?' empty':''}`},
+            ents.map(e=>{
+              const isFiller=e.created_by==='FILLER';
+              return React.createElement('div',{key:e.id,
+                className:`tt-entry${e.is_lab?' lab':''}${isFiller?' filler':''}`,
+                onClick:()=>!isFiller&&onEdit&&onEdit(e)},
+                isFiller?
+                  React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:2}},
+                    React.createElement('div',{style:{fontSize:'.62rem',fontFamily:'var(--mono)',color:'var(--gold)',fontWeight:600}},
+                      e.notes||'Library Hour'),
+                    React.createElement('div',{style:{fontSize:'.58rem',color:'var(--muted)',opacity:.7}},'Free Period')
+                  ):
+                  React.createElement('div',null,
+                    e.is_lab&&React.createElement('div',{className:'entry-tag'},'LAB'),
+                    React.createElement('div',{className:'subj'},e.subject_name||e.subject_code),
+                    React.createElement('div',{className:'fac'},e.faculty_name),
+                    React.createElement('div',{className:'room'},e.room_name),
+                    !readOnly&&React.createElement('div',{style:{position:'absolute',top:2,right:2}},
+                      React.createElement('button',{
+                        onClick:(ev)=>{ev.stopPropagation();onDelete&&onDelete(e.id)},
+                        style:{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:'10px',padding:'0 2px'}
+                      },'âœ•')
+                    )
+                  )
+              );
+            })
+          );
+        })
+      ]).flat()
+    )
+  );
+}
+
+function EntryModal({entry,subjects,faculty,rooms,depts,onClose,onSave,toast}){
+  const isEdit=!!entry?.id;
+  const [form,setForm]=useState({
+    dept_id:entry?.dept_id||'',year:entry?.year||2,semester:entry?.semester||3,
+    subject_id:entry?.subject_id||'',faculty_id:entry?.faculty_id||'',
+    room_id:entry?.room_id||'',day:entry?.day||'Monday',slot_number:entry?.slot_number||1,
+    is_lab:entry?.is_lab||false,notes:entry?.notes||'',modified_by:'HoD'
+  });
+  const [saving,setSaving]=useState(false);
+  const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+
+  const setSubject=(sid)=>{
+    const subj=subjects.find(s=>s.id==sid);
+    const updates={subject_id:+sid};
+    if(subj&&subj.faculty_id) updates.faculty_id=subj.faculty_id;
+    setForm(p=>({...p,...updates}));
+  };
+  const filteredSubjects=subjects.filter(s=>(!form.dept_id||s.dept_id==form.dept_id)&&(!form.semester||s.semester==form.semester));
+  const filteredFaculty=faculty.filter(f=>!form.dept_id||f.dept_id==form.dept_id);
+  const filteredRooms=rooms.filter(r=>!form.dept_id||r.dept_id==form.dept_id);
+
+  const save=async()=>{
+    if(!form.subject_id||!form.faculty_id||!form.day||!form.slot_number){toast('Fill all required fields','error');return;}
+    setSaving(true);
+    try{
+      const slotTimes={1:['08:30','09:20'],2:['09:20','10:10'],3:['10:25','11:15'],4:['11:15','12:05'],5:['13:10','14:00'],6:['14:00','14:50'],7:['15:05','15:55'],8:['15:55','16:45']};
+      const [st,et]=slotTimes[form.slot_number]||['08:30','09:20'];
+      const payload={...form,start_time:st,end_time:et};
+      if(isEdit)await api(`/timetable/${entry.id}`,{method:'PUT',body:payload});
+      else await api('/timetable',{method:'POST',body:payload});
+      toast(isEdit?'Entry updated':'Entry added','success');onSave();
+    }catch(e){toast(e.message,'error')}
+    setSaving(false);
+  };
+
+  return React.createElement('div',{className:'modal-overlay',onClick:onClose},
+    React.createElement('div',{className:'modal',onClick:e=>e.stopPropagation()},
+      React.createElement('div',{className:'modal-head'},
+        React.createElement('h2',null,isEdit?'Edit Entry':'Add Entry'),
+        React.createElement('button',{className:'btn btn-ghost',style:{padding:'4px 8px'},onClick:onClose},Icons.x)
+      ),
+      React.createElement('div',{className:'modal-body'},
+        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}},
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Department'),
+            React.createElement('select',{className:'form-control',value:form.dept_id,onChange:e=>set('dept_id',e.target.value)},
+              React.createElement('option',{value:''},'All'),
+              depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
+            )
+          ),
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Year / Semester'),
+            React.createElement('div',{style:{display:'flex',gap:6}},
+              React.createElement('select',{className:'form-control',value:form.year,onChange:e=>set('year',+e.target.value)},
+                [1,2,3,4].map(y=>React.createElement('option',{key:y,value:y},`Year ${y}`))
+              ),
+              React.createElement('select',{className:'form-control',value:form.semester,onChange:e=>set('semester',+e.target.value)},
+                [1,2,3,4,5,6,7,8].map(s=>React.createElement('option',{key:s,value:s},`Sem ${s}`))
+              )
+            )
+          ),
+          React.createElement('div',{className:'form-group',style:{gridColumn:'1/-1'}},
+            React.createElement('label',{className:'form-label'},'Subject *'),
+            React.createElement('select',{className:'form-control',value:form.subject_id,onChange:e=>{
+              const sid=+e.target.value;
+              set('subject_id',sid);
+              const subj=filteredSubjects.find(s=>s.id===sid);
+              if(subj&&subj.faculty_id) set('faculty_id',subj.faculty_id);
+            }},
+              React.createElement('option',{value:''},'Select subject'),
+              filteredSubjects.map(s=>React.createElement('option',{key:s.id,value:s.id},`${s.code} â€” ${s.name}`))
+            )
+          ),
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Faculty *'),
+            React.createElement('select',{className:'form-control',value:form.faculty_id,onChange:e=>set('faculty_id',+e.target.value)},
+              React.createElement('option',{value:''},'Select faculty'),
+              filteredFaculty.map(f=>React.createElement('option',{key:f.id,value:f.id},f.name))
+            )
+          ),
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Room'),
+            React.createElement('select',{className:'form-control',value:form.room_id,onChange:e=>set('room_id',+e.target.value)},
+              React.createElement('option',{value:''},'No room'),
+              filteredRooms.map(r=>React.createElement('option',{key:r.id,value:r.id},`${r.name} (${r.room_type})`))
+            )
+          ),
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Day *'),
+            React.createElement('select',{className:'form-control',value:form.day,onChange:e=>set('day',e.target.value)},
+              DAYS.map(d=>React.createElement('option',{key:d,value:d},d))
+            )
+          ),
+          React.createElement('div',{className:'form-group'},
+            React.createElement('label',{className:'form-label'},'Slot *'),
+            React.createElement('select',{className:'form-control',value:form.slot_number,onChange:e=>set('slot_number',+e.target.value)},
+              [1,2,3,4,5,6,7,8].map(s=>React.createElement('option',{key:s,value:s},`P${s} â€” ${SLOT_LABELS[s]}`))
+            )
+          ),
+          React.createElement('div',{className:'form-group',style:{display:'flex',alignItems:'center',gap:8,paddingTop:20}},
+            React.createElement('input',{type:'checkbox',id:'is_lab',checked:form.is_lab,onChange:e=>set('is_lab',e.target.checked)}),
+            React.createElement('label',{htmlFor:'is_lab',style:{fontSize:'.85rem',cursor:'pointer'}},'Lab Session')
+          )
+        ),
+        React.createElement('div',{className:'form-group'},
+          React.createElement('label',{className:'form-label'},'Notes'),
+          React.createElement('input',{className:'form-control',value:form.notes,onChange:e=>set('notes',e.target.value),placeholder:'Optional notes...'})
+        )
+      ),
+      React.createElement('div',{className:'modal-foot'},
+        React.createElement('button',{className:'btn btn-ghost',onClick:onClose},'Cancel'),
+        React.createElement('button',{className:'btn btn-primary',onClick:save,disabled:saving},
+          saving?React.createElement('div',{className:'spinner'}):null,'Save Entry'
+        )
+      )
+    )
+  );
+}
+
+function MasterPage({depts,subjects,faculty,rooms,toast,onTtChange}){
+  const [deptId,setDeptId]=useState('');
+  const [year,setYear]=useState(2);
+  const [sem,setSem]=useState(3);
+  const [entries,setEntries]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [generating,setGenerating]=useState(false);
+  const [conflicts,setConflicts]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [viewMode,setViewMode]=useState('grid');
+
+  const load=useCallback(async()=>{
+    if(!deptId) return;
+    setLoading(true);
+    try{
+      const data=await api(`/timetable?dept_id=${deptId}&year=${year}&semester=${sem}`);
+      setEntries(data);
+      const c=await api(`/conflicts?dept_id=${deptId}`);
+      setConflicts(c);
+    }catch(e){toast(e.message,'error')}
+    setLoading(false);
+  },[deptId,year,sem]);
+
+  useEffect(()=>{if(deptId)load();},[deptId,year,sem]);
+
+  const getSoftConstraints=(did)=>{
+    try{
+      const stored=localStorage.getItem(`soft_constraints_dept_${did}`);
+      return stored?JSON.parse(stored):[];
+    }catch(e){return []}
+  };
+
+  const generate=async()=>{
+    if(!deptId){toast('Select a department first','error');return;}
+    setGenerating(true);
+    try{
+      const softConstraints=getSoftConstraints(deptId);
+      const r=await api('/generate',{method:'POST',body:{dept_id:+deptId,year,semester:sem,soft_constraints:softConstraints}});
+      toast(`Generated ${r.count} entries âœ¨`,'success');
+      load();if(onTtChange)onTtChange();
+    }catch(e){toast(e.message,'error')}
+    setGenerating(false);
+  };
+
+  const deleteEntry=async(id)=>{
+    if(!confirm('Delete this entry?')) return;
+    try{await api(`/timetable/${id}`,{method:'DELETE'});toast('Deleted','info');load();if(onTtChange)onTtChange();}
+    catch(e){toast(e.message,'error')}
+  };
+
+  const clearAll=async()=>{
+    if(!confirm(`Clear ALL entries for Semester ${sem}, Year ${year}?`)) return;
+    try{await api('/timetable/bulk',{method:'DELETE',body:{dept_id:+deptId,semester:sem,year}});
+      toast('Cleared','info');load();if(onTtChange)onTtChange();}
+    catch(e){toast(e.message,'error')}
+  };
+
+  const softConstraints=getSoftConstraints(deptId);
+
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{className:'ai-panel'},
+      React.createElement('div',{className:'ai-panel-title'},
+        Icons.zap,React.createElement('span',null,'AI Timetable Generator')
+      ),
+      React.createElement('p',{style:{fontSize:'.8rem',color:'var(--muted)',marginTop:4,marginBottom:14}},
+        'Select a department & semester, then generate a conflict-free timetable. Soft constraints are loaded automatically from your Excel setup.'
+      ),
+      React.createElement('div',{className:'controls-row'},
+        React.createElement('select',{value:deptId,onChange:e=>setDeptId(e.target.value),style:{minWidth:200}},
+          React.createElement('option',{value:''},'â€” Select Department â€”'),
+          depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
+        ),
+        React.createElement('select',{value:year,onChange:e=>setYear(+e.target.value)},
+          [1,2,3,4].map(y=>React.createElement('option',{key:y,value:y},`Year ${y}`))
+        ),
+        React.createElement('select',{value:sem,onChange:e=>setSem(+e.target.value)},
+          [1,2,3,4,5,6,7,8].map(s=>React.createElement('option',{key:s,value:s},`Semester ${s}`))
+        )
+      ),
+      deptId&&softConstraints.length>0&&React.createElement('div',{style:{marginBottom:12,padding:'10px 12px',background:'rgba(139,92,246,.08)',borderRadius:8,border:'1px solid rgba(139,92,246,.2)'}},
+        React.createElement('div',{style:{fontSize:'.7rem',fontFamily:'var(--mono)',color:'var(--accent2)',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}},
+          `${softConstraints.length} Soft Constraint(s) from Excel Setup:`
+        ),
+        softConstraints.map((sc,i)=>React.createElement('div',{key:i,style:{fontSize:'.78rem',color:'var(--muted)',padding:'2px 0'}},
+          React.createElement('span',{style:{color:'var(--accent)',fontFamily:'var(--mono)',fontSize:'.65rem',marginRight:6}},(i+1)+'.'),sc
+        ))
+      ),
+      React.createElement('button',{className:'btn btn-ai',onClick:generate,disabled:generating||!deptId},
+        generating?React.createElement('div',{className:'spinner'}):Icons.zap,
+        generating?'Generatingâ€¦':'Generate with AI'
+      )
+    ),
+    conflicts.length>0&&React.createElement('div',{style:{marginBottom:16}},
+      React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8,color:'var(--danger)'}},
+        Icons.alert,React.createElement('strong',{style:{fontSize:'.85rem'}},`${conflicts.length} Conflict(s) Detected`)
+      ),
+      conflicts.slice(0,3).map((c,i)=>React.createElement('div',{key:i,className:'conflict-badge'},
+        React.createElement('strong',null,`${c.type} Conflict`),` â€” ${c.day}, Slot P${c.slot}`,
+        c.faculty&&` | Faculty: ${c.faculty}`,c.room&&` | Room: ${c.room}`
+      ))
+    ),
+    React.createElement('div',{style:{display:'flex',gap:10,marginBottom:16,alignItems:'center'}},
+      React.createElement('div',{className:'tabs'},
+        React.createElement('div',{className:`tab${viewMode==='grid'?' active':''}`,onClick:()=>setViewMode('grid')},'Grid View'),
+        React.createElement('div',{className:`tab${viewMode==='table'?' active':''}`,onClick:()=>setViewMode('table')},'Table View')
+      ),
+      React.createElement('div',{style:{marginLeft:'auto',display:'flex',gap:8}},
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>setModal('add')},Icons.plus,' Add Entry'),
+        entries.length>0&&React.createElement('button',{className:'btn btn-danger',onClick:clearAll},'Clear All')
+      )
+    ),
+    loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'}),React.createElement('p',null,'Loading timetableâ€¦')):
+    entries.length===0?React.createElement('div',{className:'empty-state'},
+      React.createElement('div',null,Icons.calendar),
+      React.createElement('p',null,deptId?'No entries yet. Click "Generate with AI" to get started.':'Select a department to view timetable.')
+    ):
+    viewMode==='grid'?
+      React.createElement(TimetableGrid,{entries,onEdit:setModal,onDelete:deleteEntry}):
+      React.createElement('table',{className:'data-table'},
+        React.createElement('thead',null,React.createElement('tr',null,
+          ['Day','Slot','Subject','Faculty','Room','Type','Modified By','Actions'].map(h=>
+            React.createElement('th',{key:h},h))
+        )),
+        React.createElement('tbody',null,
+          [...entries].sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.slot_number-b.slot_number)
+          .map(e=>React.createElement('tr',{key:e.id},
+            React.createElement('td',null,e.day),
+            React.createElement('td',null,React.createElement('span',{style:{fontFamily:'var(--mono)',fontSize:'.75rem'}},`P${e.slot_number}`)),
+            React.createElement('td',null,e.subject_name),
+            React.createElement('td',null,e.faculty_name),
+            React.createElement('td',null,e.room_name||'â€”'),
+            React.createElement('td',null,React.createElement('span',{className:`badge badge-${e.is_lab?'lab':'theory'}`},e.is_lab?'Lab':'Theory')),
+            React.createElement('td',null,React.createElement('span',{style:{fontSize:'.72rem',color:'var(--muted)'}},e.created_by)),
+            React.createElement('td',null,
+              React.createElement('div',{style:{display:'flex',gap:6}},
+                React.createElement('button',{className:'btn btn-ghost',style:{padding:'4px 8px',fontSize:'.72rem'},onClick:()=>setModal(e)},Icons.edit),
+                React.createElement('button',{className:'btn btn-danger',style:{padding:'4px 8px',fontSize:'.72rem'},onClick:()=>deleteEntry(e.id)},Icons.trash)
+              )
+            )
+          ))
+        )
+      ),
+    modal&&React.createElement(EntryModal,{
+      entry:modal==='add'?{dept_id:+deptId,year,semester:sem}:modal,
+      subjects,faculty,rooms,depts,
+      onClose:()=>setModal(null),
+      onSave:()=>{setModal(null);load();if(onTtChange)onTtChange();},
+      toast
+    })
+  );
+}
+
+function FacultyPage({faculty,depts,toast,ttVersion}){
+  const [selectedDept,setSelectedDept]=useState('');
+  const [selected,setSelected]=useState('');
+  const [schedule,setSchedule]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [viewMode,setViewMode]=useState('list');
+
+  const load=async(fid)=>{
+    const id=fid||selected;
+    if(!id) return;
+    setLoading(true);
+    try{const d=await api(`/timetable/faculty/${id}`);setSchedule(d);}
+    catch(e){toast(e.message,'error')}
+    setLoading(false);
+  };
+
+  useEffect(()=>{if(selected)load(selected);},[selected]);
+  useEffect(()=>{if(selected&&ttVersion)load(selected);},[ttVersion]);
+
+  const filteredFaculty=selectedDept?faculty.filter(f=>f.dept_id==selectedDept):faculty;
+  const fac=faculty.find(f=>f.id==selected);
+  const allEntries=schedule?DAYS.flatMap(day=>(schedule.schedule[day]||[]).map(e=>({...e,day})))
+    .sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.slot_number-b.slot_number):[];
+
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{style:{display:'flex',gap:16,marginBottom:20,flexWrap:'wrap',alignItems:'flex-end'}},
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+        React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Department'),
+        React.createElement('select',{
+          value:selectedDept,
+          onChange:e=>{setSelectedDept(e.target.value);setSelected('');setSchedule(null);},
+          style:{minWidth:220}
+        },
+          React.createElement('option',{value:''},'â€” All Departments â€”'),
+          depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
+        )
+      ),
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+        React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Faculty'),
+        React.createElement('select',{value:selected,onChange:e=>setSelected(e.target.value),style:{minWidth:260}},
+          React.createElement('option',{value:''},selectedDept?'â€” Select Faculty â€”':'â€” Select Department First â€”'),
+          filteredFaculty.map(f=>React.createElement('option',{key:f.id,value:f.id},`${f.name} (${f.role})`))
+        )
+      ),
+      selected&&React.createElement('button',{className:'btn btn-ghost',style:{marginBottom:2},onClick:()=>load(selected)},'\u21bb Refresh')
+    ),
+    loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'})):
+    !schedule?React.createElement('div',{className:'empty-state'},React.createElement('p',null,'Select a faculty member to view their schedule')):
+    React.createElement('div',null,
+      React.createElement('div',{className:'stats-grid',style:{marginBottom:20}},
+        React.createElement('div',{className:'stat-card'},
+          React.createElement('div',{className:'stat-val'},schedule.total_hours),
+          React.createElement('div',{className:'stat-label'},'Total Classes/Week')
+        ),
+
+      ),
+      React.createElement('div',{className:'tabs',style:{marginBottom:16}},
+        React.createElement('div',{className:`tab${viewMode==='grid'?' active':''}`,onClick:()=>setViewMode('grid')},'Grid View'),
+        React.createElement('div',{className:`tab${viewMode==='list'?' active':''}`,onClick:()=>setViewMode('list')},'List View')
+      ),
+      viewMode==='grid'?
+        React.createElement(TimetableGrid,{entries:allEntries,readOnly:true}):
+        DAYS.map(day=>{
+          const slots=schedule.schedule[day]||[];
+          return React.createElement('div',{key:day,className:'fac-day'},
+            React.createElement('div',{className:'fac-day-label'},day),
+            slots.length===0?
+              React.createElement('div',{style:{fontSize:'.78rem',color:'var(--subtle)',padding:'6px 0'}},'No classes'):
+              slots.map(e=>React.createElement('div',{key:e.id,className:'fac-slot'},
+                React.createElement('div',{className:'fac-time'},`${e.start_time}â€“${e.end_time}`),
+                React.createElement('div',{className:`fac-entry${e.is_lab?' lab':''}`},
+                  React.createElement('div',{style:{fontWeight:600,fontSize:'.82rem'}},e.subject_name),
+                  React.createElement('div',{style:{fontSize:'.73rem',color:'var(--muted)',marginTop:2}},
+                    `${e.is_lab?'[LAB] ':''}${e.room_name||'No room'}`
+                  )
+                )
+              ))
+          );
+        })
+    )
+  );
+}
+
+function LabPage({rooms,depts,toast,ttVersion}){
+  const [selectedDept,setSelectedDept]=useState('');
+  const [selected,setSelected]=useState('');
+  const [schedule,setSchedule]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [viewMode,setViewMode]=useState('list');
+
+  const allLabs=rooms.filter(r=>r.room_type==='lab');
+  const filteredLabs=selectedDept?allLabs.filter(r=>r.dept_id==selectedDept):allLabs;
+
+  const load=async(rid)=>{
+    const id=rid||selected;
+    if(!id) return;
+    setLoading(true);
+    try{const d=await api(`/timetable/lab/${id}`);setSchedule(d);}
+    catch(e){toast(e.message,'error')}
+    setLoading(false);
+  };
+
+  useEffect(()=>{if(selected)load(selected);},[selected]);
+  useEffect(()=>{if(selected&&ttVersion)load(selected);},[ttVersion]);
+
+  const allEntries=schedule?DAYS.flatMap(day=>(schedule.schedule[day]||[]).map(e=>({...e,day})))
+    .sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.slot_number-b.slot_number):[];
+
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{style:{display:'flex',gap:16,marginBottom:20,flexWrap:'wrap',alignItems:'flex-end'}},
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+        React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Department'),
+        React.createElement('select',{
+          value:selectedDept,
+          onChange:e=>{setSelectedDept(e.target.value);setSelected('');setSchedule(null);},
+          style:{minWidth:220}
+        },
+          React.createElement('option',{value:''},'â€” All Departments â€”'),
+          depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name))
+        )
+      ),
+      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+        React.createElement('label',{style:{fontSize:'.72rem',fontFamily:'var(--mono)',color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}},'Lab'),
+        React.createElement('select',{value:selected,onChange:e=>setSelected(e.target.value),style:{minWidth:220}},
+          React.createElement('option',{value:''},selectedDept?'â€” Select Lab â€”':'â€” Select Department First â€”'),
+          filteredLabs.map(r=>React.createElement('option',{key:r.id,value:r.id},r.name))
+        )
+      ),
+      selected&&React.createElement('button',{className:'btn btn-ghost',style:{marginBottom:2},onClick:()=>load(selected)},'â†» Refresh')
+    ),
+    loading?React.createElement('div',{className:'loading-state'},React.createElement('div',{className:'spinner'})):
+    !schedule?React.createElement('div',{className:'empty-state'},React.createElement('p',null,'Select a lab to view its schedule')):
+    React.createElement('div',null,
+      React.createElement('div',{className:'card',style:{marginBottom:16}},
+        React.createElement('div',{className:'card-title'},schedule.room.name),
+        React.createElement('div',{className:'card-subtitle'},`Type: ${schedule.room.type}`)
+      ),
+      React.createElement('div',{className:'tabs',style:{marginBottom:16}},
+        React.createElement('div',{className:`tab${viewMode==='grid'?' active':''}`,onClick:()=>setViewMode('grid')},'Grid View'),
+        React.createElement('div',{className:`tab${viewMode==='list'?' active':''}`,onClick:()=>setViewMode('list')},'List View')
+      ),
+      viewMode==='grid'?
+        React.createElement(TimetableGrid,{entries:allEntries,readOnly:true}):
+        DAYS.map(day=>{
+          const slots=(schedule.schedule[day]||[]).sort((a,b)=>a.slot_number-b.slot_number);
+          return React.createElement('div',{key:day,className:'fac-day'},
+            React.createElement('div',{className:'fac-day-label'},day),
+            slots.length===0?
+              React.createElement('div',{style:{fontSize:'.78rem',color:'var(--subtle)',padding:'6px 0'}},'Lab available'):
+              slots.map(e=>React.createElement('div',{key:e.id,className:'fac-slot'},
+                React.createElement('div',{className:'fac-time'},`P${e.slot_number}`),
+                React.createElement('div',{className:'fac-entry lab'},
+                  React.createElement('div',{style:{fontWeight:600,fontSize:'.82rem'}},e.subject_name),
+                  React.createElement('div',{style:{fontSize:'.73rem',color:'var(--muted)',marginTop:2}},
+                    `Faculty: ${e.faculty_name} | Sem ${e.semester} Year ${e.year}`
+                  )
+                )
+              ))
+          );
+        })
+    )
+  );
+}
+
+function ManagePage({depts,subjects,faculty,rooms,onRefresh,toast}){
+  const [tab,setTab]=useState('subjects');
+  const [uploading,setUploading]=useState(false);
+  const fileRef=useRef(null);
+
+  const handleExcelUpload=async(e)=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    setUploading(true);
+    const fd=new FormData();
+    fd.append('file',file);
+    try{
+      const r=await fetch(API+'/import/excel',{method:'POST',body:fd});
+      const d=await r.json();
+      if(!r.ok) throw new Error(d.error||'Import failed');
+      const w=d.warnings?.length?` (${d.warnings.length} warnings)`:'';
+      toast(`Faculty: ${d.imported.faculty} | Subjects: ${d.imported.subjects} | Rooms: ${d.imported.rooms}${w}`,'success');
+      onRefresh();
+    }catch(e){toast(e.message,'error')}
+    setUploading(false);
+    if(fileRef.current) fileRef.current.value='';
+  };
+
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{style:{background:'linear-gradient(135deg,rgba(139,92,246,.07),rgba(109,40,217,.04))',border:'1px solid rgba(139,92,246,.2)',borderRadius:12,padding:20,marginBottom:20}},
+      React.createElement('div',{style:{fontFamily:'var(--serif)',fontSize:'1rem',marginBottom:4,display:'flex',alignItems:'center',gap:8}},
+        Icons.upload,React.createElement('span',null,'Import Data from Excel')
+      ),
+      React.createElement('p',{style:{fontSize:'.8rem',color:'var(--muted)',marginTop:4,marginBottom:14}},
+        'Upload your Excel file to import or update department data. All 5 sheets will be processed: Department, Faculty, Subjects, Rooms, SoftConstraints.'
+      ),
+      React.createElement('div',{style:{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}},
+        React.createElement('label',{style:{cursor:'pointer'}},
+          React.createElement('input',{ref:fileRef,type:'file',accept:'.xlsx,.xls',style:{display:'none'},onChange:handleExcelUpload}),
+          React.createElement('span',{className:'btn btn-primary',style:{pointerEvents:'none'}},
+            uploading?React.createElement('div',{className:'spinner'}):Icons.upload,
+            uploading?'Importingâ€¦':'Upload Excel File'
+          )
+        ),
+        React.createElement('span',{style:{fontSize:'.75rem',color:'var(--muted)'}},'Accepted: .xlsx, .xls')
+      )
+    ),
+    React.createElement('div',{className:'tabs'},
+      ['subjects','faculty','rooms'].map(t=>
+        React.createElement('div',{key:t,className:`tab${tab===t?' active':''}`,onClick:()=>setTab(t)},
+          t.charAt(0).toUpperCase()+t.slice(1)
+        )
+      )
+    ),
+    tab==='subjects'&&React.createElement('table',{className:'data-table'},
+      React.createElement('thead',null,React.createElement('tr',null,
+        ['Code','Name','Year','Sem','Type','Hours/wk','Faculty'].map(h=>React.createElement('th',{key:h},h))
+      )),
+      React.createElement('tbody',null,
+        subjects.length===0?React.createElement('tr',null,React.createElement('td',{colSpan:7,style:{textAlign:'center',color:'var(--muted)',padding:32}},'No subjects yet. Upload an Excel file above.')):
+        subjects.map(s=>React.createElement('tr',{key:s.id},
+          React.createElement('td',null,React.createElement('span',{style:{fontFamily:'var(--mono)',fontSize:'.75rem'}},s.code)),
+          React.createElement('td',null,s.name),
+          React.createElement('td',null,`Y${s.year}`),
+          React.createElement('td',null,`S${s.semester}`),
+          React.createElement('td',null,React.createElement('span',{className:`badge badge-${s.subject_type}`},s.subject_type)),
+          React.createElement('td',null,s.hours_per_week),
+          React.createElement('td',null,s.faculty_name)
+        ))
+      )
+    ),
+    tab==='faculty'&&React.createElement('table',{className:'data-table'},
+      React.createElement('thead',null,React.createElement('tr',null,
+        ['Name','Faculty ID','Role'].map(h=>React.createElement('th',{key:h},h))
+      )),
+      React.createElement('tbody',null,
+        faculty.length===0?React.createElement('tr',null,React.createElement('td',{colSpan:4,style:{textAlign:'center',color:'var(--muted)',padding:32}},'No faculty yet. Upload an Excel file above.')):
+        faculty.map(f=>React.createElement('tr',{key:f.id},
+          React.createElement('td',null,f.name),
+          React.createElement('td',null,React.createElement('span',{style:{fontFamily:'var(--mono)',fontSize:'.75rem'}},f.faculty_id)),
+          React.createElement('td',null,React.createElement('span',{className:`badge ${f.role==='HoD'?'badge-coord':f.role==='lab_incharge'?'badge-lab':'badge-theory'}`},f.role)),
+          ))
+      )
+    ),
+    tab==='rooms'&&React.createElement('table',{className:'data-table'},
+      React.createElement('thead',null,React.createElement('tr',null,
+        ['Name','Type','Capacity'].map(h=>React.createElement('th',{key:h},h))
+      )),
+      React.createElement('tbody',null,
+        rooms.length===0?React.createElement('tr',null,React.createElement('td',{colSpan:3,style:{textAlign:'center',color:'var(--muted)',padding:32}},'No rooms yet. Upload an Excel file above.')):
+        rooms.map(r=>React.createElement('tr',{key:r.id},
+          React.createElement('td',null,r.name),
+          React.createElement('td',null,React.createElement('span',{className:`badge badge-${r.room_type==='lab'?'lab':'theory'}`},r.room_type)),
+          React.createElement('td',null,r.capacity)
+        ))
+      )
+    )
+  );
+}
+
+function DashboardPage({depts,subjects,faculty,rooms,toast}){
+  const [health,setHealth]=useState(null);
+  useEffect(()=>{api('/health').then(setHealth).catch(()=>{})},[]);
+  const stats=[
+    {val:depts.length,label:'Departments',color:'var(--accent)'},
+    {val:faculty.length,label:'Faculty Members',color:'var(--accent2)'},
+    {val:subjects.length,label:'Subjects',color:'var(--gold)'},
+    {val:rooms.length,label:'Rooms & Labs',color:'var(--success)'},
+    {val:health?.entries||0,label:'Timetable Entries',color:'var(--text)'},
+    {val:rooms.filter(r=>r.room_type==='lab').length,label:'Labs',color:'var(--success)'},
+  ];
+  const steps=[
+    {n:'1',t:'Import Data',d:'Use the Manage Data tab to upload your Excel file with faculty, subjects, rooms and soft constraints.',color:'var(--accent)'},
+    {n:'2',t:'Generate Timetable',d:'Go to Master Timetable, select department & semester, then click Generate with AI.',color:'var(--accent2)'},
+    {n:'3',t:'Review & Edit',d:'Coordinators can edit any entry manually in grid or table view.',color:'var(--gold)'},
+    {n:'4',t:'View Schedules',d:'Faculty & lab views auto-update instantly with grid and list options.',color:'var(--success)'},
+  ];
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{style:{marginBottom:24}},
+      React.createElement('h2',{style:{fontFamily:'var(--serif)',fontSize:'1.6rem',marginBottom:4}},'Welcome back,'),
+      React.createElement('p',{style:{color:'var(--muted)',fontSize:'.9rem'}},'Manage your department timetables with AI-powered scheduling.')
+    ),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:12,marginBottom:20}},
+      stats.map((s,i)=>React.createElement('div',{key:i,className:'stat-card'},
+        React.createElement('div',{className:'stat-val',style:{color:s.color}},s.val),
+        React.createElement('div',{className:'stat-label'},s.label)
+      ))
+    ),
+    React.createElement('div',{className:'card',style:{width:'100%'}},
+      React.createElement('div',{className:'card-title'},'Quick Start'),
+      React.createElement('div',{style:{marginTop:12,display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+        steps.map(({n,t,d,color})=>
+          React.createElement('div',{key:n,style:{display:'flex',gap:12,alignItems:'flex-start',padding:'14px',background:'var(--surface2)',borderRadius:8,border:'1px solid var(--border)'}},
+            React.createElement('div',{style:{width:28,height:28,borderRadius:'50%',background:color,color:color==='var(--gold)'?'#0a0b12':'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.7rem',fontWeight:700,flexShrink:0}},n),
+            React.createElement('div',null,
+              React.createElement('div',{style:{fontSize:'.85rem',fontWeight:600,marginBottom:2}},t),
+              React.createElement('div',{style:{fontSize:'.76rem',color:'var(--muted)',lineHeight:1.5}},d)
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+function LegacyFeaturesPage({depts,toast,onRefresh}){
+  const [tab,setTab]=useState('generator');
+  const [groups,setGroups]=useState([]);
+  const [user,setUser]=useState(null);
+  const [auth,setAuth]=useState({username:'',email:'',country:'',password:''});
+  const [cfg,setCfg]=useState({dept_id:'',year:1,semester:1,population_size:200,max_generations:100,mutation_rate:.1});
+  const [group,setGroup]=useState({name:'',dept_id:'',year:1,semester:1,subjects:[{name:'',hours:3}]});
+  const field=(label,key,type='text',state=auth,setState=setAuth)=>React.createElement('div',{className:'form-group'},React.createElement('label',null,label),React.createElement('input',{className:'form-control',type,value:state[key]??'',onChange:e=>setState({...state,[key]:e.target.value})}));
+  const load=async()=>{try{const [me,g]=await Promise.all([api('/auth/me'),api('/student-groups')]);setUser(me.user);setGroups(g)}catch(e){toast(e.message,'error')}};
+  useEffect(()=>{load()},[]);
+  const authSubmit=async(kind)=>{try{const u=await api('/auth/'+kind,{method:'POST',body:JSON.stringify(auth)});setUser(u);toast(kind==='login'?'Logged in':'Account created','success')}catch(e){toast(e.message,'error')}};
+  const addGroup=async()=>{try{await api('/student-groups',{method:'POST',body:JSON.stringify(group)});toast('Student batch saved in MongoDB','success');setGroup({...group,name:''});load()}catch(e){toast(e.message,'error')}};
+  const runGA=async()=>{try{const r=await api('/generate/genetic',{method:'POST',body:JSON.stringify(cfg)});toast(`${r.message} Â· fitness ${Number(r.fitness).toFixed(3)}`,'success');onRefresh()}catch(e){toast(e.message,'error')}};
+  const tabs=[['generator','Genetic Generator'],['batches','Student Batches'],['account','Account'],['guide','How to Use'],['about','About & Features']];
+  return React.createElement('div',{style:{width:'100%'}},
+    React.createElement('div',{className:'tabs'},tabs.map(([k,l])=>React.createElement('button',{key:k,className:`tab${tab===k?' active':''}`,onClick:()=>setTab(k)},l))),
+    tab==='generator'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:8}},'Genetic Algorithm Scheduler'),React.createElement('p',{style:{color:'var(--muted)',marginBottom:18}},'Elitism, crossover, roulette-style parent selection, fitness scoring and swap mutationâ€”ported from the source scheduler and persisted to MongoDB.'),
+      React.createElement('div',{className:'form-row'},React.createElement('div',{className:'form-group'},React.createElement('label',null,'Department'),React.createElement('select',{className:'form-control',value:cfg.dept_id,onChange:e=>setCfg({...cfg,dept_id:e.target.value})},React.createElement('option',{value:''},'Select'),depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name)))),field('Year','year','number',cfg,setCfg),field('Semester','semester','number',cfg,setCfg)),
+      React.createElement('div',{className:'form-row'},field('Population (20â€“1000)','population_size','number',cfg,setCfg),field('Generations (1â€“500)','max_generations','number',cfg,setCfg),field('Mutation rate','mutation_rate','number',cfg,setCfg)),React.createElement('button',{className:'btn btn-ai',onClick:runGA},'Generate with GA')),
+    tab==='batches'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:16}},'Student Batches & Subject Hours'),
+      React.createElement('div',{className:'form-row'},field('Batch name','name','text',group,setGroup),React.createElement('div',{className:'form-group'},React.createElement('label',null,'Department'),React.createElement('select',{className:'form-control',value:group.dept_id,onChange:e=>setGroup({...group,dept_id:e.target.value})},React.createElement('option',{value:''},'Select'),depts.map(d=>React.createElement('option',{key:d.id,value:d.id},d.name)))),field('Year','year','number',group,setGroup),field('Semester','semester','number',group,setGroup)),
+      React.createElement('h3',{style:{margin:'10px 0'}},'Subjects'),group.subjects.map((s,i)=>React.createElement('div',{key:i,className:'form-row'},React.createElement('input',{className:'form-control',placeholder:'Subject',value:s.name,onChange:e=>{const a=[...group.subjects];a[i]={...s,name:e.target.value};setGroup({...group,subjects:a})}}),React.createElement('input',{className:'form-control',type:'number',placeholder:'Hours',value:s.hours,onChange:e=>{const a=[...group.subjects];a[i]={...s,hours:Number(e.target.value)};setGroup({...group,subjects:a})}}))),
+      React.createElement('div',{style:{display:'flex',gap:8,margin:'12px 0'}},React.createElement('button',{className:'btn btn-ghost',onClick:()=>setGroup({...group,subjects:[...group.subjects,{name:'',hours:3}]})},'Add Subject'),React.createElement('button',{className:'btn btn-primary',onClick:addGroup},'Save Batch')),
+      React.createElement('div',{style:{marginTop:18}},groups.map(g=>React.createElement('div',{key:g.id,className:'conflict-badge',style:{borderColor:'var(--border)',background:'var(--surface2)'}},React.createElement('b',null,g.name),` Â· Year ${g.year} Â· Semester ${g.semester} Â· ${(g.subjects||[]).length} subjects`)))),
+    tab==='account'&&React.createElement('div',{className:'card'},user?React.createElement(React.Fragment,null,React.createElement('h2',null,`Welcome, ${user.username}`),React.createElement('p',{style:{color:'var(--muted)',margin:'8px 0 16px'}},`${user.email} Â· ${user.country||'Country not set'}`),React.createElement('button',{className:'btn btn-danger',onClick:async()=>{await api('/auth/logout',{method:'POST'});setUser(null)}},'Logout')):React.createElement(React.Fragment,null,React.createElement('h2',{style:{marginBottom:16}},'Login or Sign Up'),React.createElement('div',{className:'form-row'},field('Username','username'),field('Email','email'),field('Country','country'),field('Password','password','password')),React.createElement('div',{style:{display:'flex',gap:8}},React.createElement('button',{className:'btn btn-primary',onClick:()=>authSubmit('login')},'Login'),React.createElement('button',{className:'btn btn-ghost',onClick:()=>authSubmit('register')},'Create Account')))),
+    tab==='guide'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:14}},'How to Use'),[['1','Set up department data','Add faculty, rooms and subjects manually or import the Excel template.'],['2','Define batches','Record every student batch, its subjects and weekly required hours.'],['3','Choose a generator','Use the destination smart generator or the migrated genetic algorithm controls.'],['4','Review and adjust','Open Master Timetable, inspect conflicts and edit individual periods.'],['5','Use role views','Open Faculty Schedule and Lab Schedule for dedicated views and printing.']].map(([n,t,d])=>React.createElement('div',{key:n,className:'conflict-badge',style:{borderColor:'var(--border)',background:'var(--surface2)'}},React.createElement('b',null,`${n}. ${t}`),React.createElement('div',{style:{color:'var(--muted)',marginTop:4}},d)))),
+    tab==='about'&&React.createElement('div',{className:'card'},React.createElement('h2',{style:{marginBottom:10}},'Complete Scheduler'),React.createElement('p',{style:{color:'var(--muted)',lineHeight:1.7}},'Student-friendly and teacher-friendly timetable creation, fully online workflows, printable schedules, guided setup, user accounts, batch and subject-hour input, teacher assignment balancing, conflict detection, room/lab scheduling, Excel import, AI generation and genetic-algorithm generation are unified here. All application records use MongoDB.'))
+  );
+}
+
+function App(){
+  const [page,setPage]=useState('dashboard');
+  const [depts,setDepts]=useState([]);
+  const [subjects,setSubjects]=useState([]);
+  const [faculty,setFaculty]=useState([]);
+  const [rooms,setRooms]=useState([]);
+  const [ttVersion,setTtVersion]=useState(0);
+  const {toasts,toast}=useToast();
+
+  const loadAll=async()=>{
+    try{
+      const [d,s,f,r]=await Promise.all([api('/departments'),api('/subjects'),api('/faculty'),api('/rooms')]);
+      setDepts(d);setSubjects(s);setFaculty(f);setRooms(r);
+    }catch(e){toast('Could not connect to backend. Is Flask running on port 5000?','error')}
+  };
+
+  const bumpTt=()=>setTtVersion(v=>v+1);
+
+  useEffect(()=>{loadAll();window._appLoadAll=loadAll;},[]);
+
+  const pages={
+    dashboard:{label:'Dashboard',icon:Icons.home,comp:React.createElement(DashboardPage,{depts,subjects,faculty,rooms,toast})},
+    manage:{label:'Manage Data',icon:Icons.upload,comp:React.createElement(ManagePage,{depts,subjects,faculty,rooms,onRefresh:loadAll,toast})},
+    master:{label:'Master Timetable',icon:Icons.calendar,comp:React.createElement(MasterPage,{depts,subjects,faculty,rooms,toast,onTtChange:bumpTt})},
+    faculty:{label:'Faculty Schedule',icon:Icons.users,comp:React.createElement(FacultyPage,{faculty,depts,toast,ttVersion})},
+    lab:{label:'Lab Schedule',icon:Icons.flask,comp:React.createElement(LabPage,{rooms,depts,toast,ttVersion})},
+    migrated:{label:'Complete Features',icon:Icons.settings||Icons.home,comp:React.createElement(LegacyFeaturesPage,{depts,toast,onRefresh:()=>{loadAll();bumpTt()}})},
+  };
+
+  return React.createElement('div',{className:'shell'},
+    React.createElement('div',{className:'sidebar'},
+      React.createElement('div',{className:'sidebar-logo'},
+        React.createElement('h1',null,'EduSchedule'),
+        React.createElement('span',null,'AI Timetable System')
+      ),
+      React.createElement('div',{className:'sidebar-nav'},
+        React.createElement('div',{className:'nav-section'},'Main'),
+        Object.entries(pages).map(([key,{label,icon}])=>
+          React.createElement('div',{key,className:`nav-item${page===key?' active':''}`,onClick:()=>setPage(key)},
+            icon,React.createElement('span',null,label)
+          )
+        ),
+      )
+    ),
+    React.createElement('div',{className:'main'},
+      React.createElement('div',{className:'topbar'},
+        React.createElement('div',{className:'topbar-title'},pages[page].label),
+        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,fontSize:'.78rem',color:'var(--muted)'}},
+          React.createElement('div',{style:{width:6,height:6,borderRadius:'50%',background:'var(--success)'}}),
+          'Backend connected'
+        )
+      ),
+      React.createElement('div',{className:'content',style:{maxWidth:'100%',width:'100%'}},pages[page].comp)
+    ),
+    React.createElement(ToastContainer,{toasts})
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('app')).render(React.createElement(App));
+</script>
+
+
+</body>
+</html>
+
